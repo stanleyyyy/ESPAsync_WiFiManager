@@ -1345,6 +1345,12 @@ void ESPAsync_WiFiManager::reportStatus(String &page)
 {
   page += FPSTR(WM_HTTP_SCRIPT_NTP_MSG);
 
+  // append mDNS hostname
+  page += F("<p>mDNS host name:<br>");
+  page += RFC952_hostname;
+  page += ".local";
+  page += "</p>";
+
   if (WiFi_SSID() != "")
   {
     page += F("Configured to connect to AP <b>");
@@ -1710,8 +1716,13 @@ void ESPAsync_WiFiManager::handleWifiSave(AsyncWebServerRequest *request)
   if (request->hasArg("ip"))
   {
     String ip = request->arg("ip");
+    LOGDEBUG1("IP = %s\n", ip.length() ? ip.c_str() : "<empty>");
+
+    if (!ip.length())
+      ip = "0.0.0.0";
+
     optionalIPFromString(&_WiFi_STA_IPconfig._sta_static_ip, ip.c_str());
-    
+
     LOGDEBUG1(F("New Static IP ="), _WiFi_STA_IPconfig._sta_static_ip.toString());
   }
 
@@ -1817,6 +1828,13 @@ void ESPAsync_WiFiManager::handleServerClose(AsyncWebServerRequest *request)
   page += F("</b><br>");
   page += F("IP address is <b>");
   page += WiFi.localIP().toString();
+  page += F("</b>");
+
+  page += F("mDNS host name<br>");
+  page += F("<b>");
+  page += RFC952_hostname;
+  page += ".local";
+
   page += F("</b><br><br>");
   page += F("Portal closed...<br><br>");
   
@@ -1939,6 +1957,11 @@ void ESPAsync_WiFiManager::handleInfo(AsyncWebServerRequest *request)
 
   page += F("<tr><td>Station IP</td><td>");
   page += WiFi.localIP().toString();
+  page += F("</td></tr>");
+
+  page += F("<tr><td>mDNS host name</td><td>");
+  page += RFC952_hostname;
+  page += ".local";
   page += F("</td></tr>");
 
   page += F("<tr><td>Station MAC</td><td>");
